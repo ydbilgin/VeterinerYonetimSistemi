@@ -4,6 +4,7 @@ import dev.patika.spring.Dto.Request.VaccineRequest;
 import dev.patika.spring.Dto.Response.VaccineResponse;
 import dev.patika.spring.Entity.Animal;
 import dev.patika.spring.Entity.Vaccine;
+import dev.patika.spring.Repository.VaccineRepo;
 import dev.patika.spring.Service.VaccineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,32 +13,30 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/vaccine")
 public class VaccineController {
     private final VaccineService vaccineService;
+    private final VaccineRepo vaccineRepository;
 
     @Autowired
-    public VaccineController(VaccineService vaccineService) {
+    public VaccineController(VaccineService vaccineService, VaccineRepo vaccineRepository) {
         this.vaccineService = vaccineService;
+        this.vaccineRepository = vaccineRepository;
     }
 
-    @PostMapping
-    public ResponseEntity<String> saveVaccine(@RequestBody Vaccine vaccine) {
-        vaccineService.saveVaccine(vaccine);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Aşı başarıyla kaydedildi.");
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<List<Vaccine>> getVaccinesByAnimalId(@PathVariable Long id) {
         List<Vaccine> vaccines = vaccineService.getVaccinesByAnimalId(id);
         return ResponseEntity.ok(vaccines);
     }
-    @PostMapping("/create")
+    @PostMapping("/save")
     public ResponseEntity<?> createVaccine(@RequestBody VaccineRequest vaccineRequest) {
         try {
-            if (!vaccineService.isAnimalExist(vaccineRequest.getAnimalId())) {
+            if (!vaccineService.isAnimalExist(vaccineRequest.getAnimal().getId())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Belirtilen id'de hayvan mevcut değil");
             }
@@ -45,9 +44,27 @@ public class VaccineController {
             VaccineResponse response = vaccineService.saveVaccine(vaccineRequest);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteVaccine(@PathVariable("id") long id) {
+        try {
+            Optional<Vaccine> optionalVaccine = vaccineRepository.findById(id);
+
+            if (optionalVaccine.isPresent()) {
+                vaccineRepository.deleteById(id);
+                return ResponseEntity.ok(id + " numaralı aşı silindi.");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bu ID'de bir aşı bulunamadı."); // Eğer aşı bulunamazsa 404 hatası
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("ID'ye sahip aşı silinemedi: " + id + ": " + e.getMessage());
+        }
+    }
+
 
 
 

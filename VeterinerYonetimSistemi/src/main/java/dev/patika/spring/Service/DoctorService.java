@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DoctorService {
-
     private final DoctorRepo doctorRepository;
     @Autowired
     public DoctorService(DoctorRepo doctorRepository) {

@@ -8,15 +8,20 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface AppointmentRepo extends JpaRepository<Appointment,Long> {
     // Randevuları tarih aralığına ve doktora göre filtreleme
-    List<Appointment> findByAppointmentDateBetweenAndDoctor_Id(LocalDate startDate, LocalDate endDate, Long id);
+    List<Appointment> findByAppointmentDateBetweenAndDoctor_Id(LocalDateTime startDate, LocalDateTime endDate, Long id);
 
     // Randevuları tarih aralığına ve hayvana göre filtreleme
-    List<Appointment> findByAppointmentDateBetweenAndAnimalId(
-            LocalDateTime startDate, LocalDateTime endDate, Long id);
     boolean existsByAppointmentDateAndDoctor_Id(LocalDateTime appointmentDate, long id);
+    List<Appointment> findByAppointmentDateBetweenAndAnimal_Id(
+            LocalDateTime startDate, LocalDateTime endDate, Long id);
+    Optional<Appointment> findByAppointmentDateAndDoctor_IdAndAnimal_Id(LocalDateTime appointmentDate, Long doctorId, Long animalId);
+
+
 
 
 }

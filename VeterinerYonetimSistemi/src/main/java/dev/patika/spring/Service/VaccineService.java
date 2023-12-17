@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VaccineService {
@@ -23,10 +24,7 @@ public class VaccineService {
         this.animalRepo = animalRepo;
     }
 
-    public void saveVaccine(Vaccine vaccine) {
-        validateVaccine(vaccine);
-        vaccineRepository.save(vaccine);
-    }
+
 
     public List<Vaccine> getVaccinesByAnimalId(Long id) {
         return vaccineRepository.findByAnimal_Id(id);
@@ -36,39 +34,24 @@ public class VaccineService {
         return vaccineRepository.findAnimalsWithExpiringVaccines(startDate, endDate);
     }
 
-    private void validateVaccine(Vaccine vaccine) {
-        // Aşı koruyuculuk bitiş tarihini kontrol etme
-        LocalDate currentDate = LocalDate.now();
-        if (vaccine.getProtectionFinishDate().isBefore(currentDate)) {
-            throw new RuntimeException("Aşı koruyuculuk süresi geçmiş bir aşı eklenemez.");
-        }
-
-        // Eğer aynı tip aşının aynı hayvana eklenip eklenmediğini kontrol etme
-        boolean isDuplicate = vaccineRepository.existsByAnimal_IdAndNameAndCode(
-                vaccine.getAnimal().getId(), vaccine.getName(), vaccine.getCode());
-        if (isDuplicate) {
-            throw new RuntimeException("Bu hayvana aynı tip aşı daha önce eklenmiştir.");
-        }
-    }
+    //aşı kaydetme
     public VaccineResponse saveVaccine(VaccineRequest vaccineRequest) {
         Vaccine vaccine = new Vaccine();
         vaccine.setName(vaccineRequest.getName());
         vaccine.setCode(vaccineRequest.getCode());
         vaccine.setProtectionStartDate(vaccineRequest.getProtectionStartDate());
         vaccine.setProtectionFinishDate(vaccineRequest.getProtectionFinishDate());
-        vaccine.setAnimal(animalRepo.findById(vaccineRequest.getAnimalId()).orElse(null));
 
-        List<Vaccine> vaccines = vaccineRepository.findByAnimalIdAndVaccineNameAndVaccineCode(
-                vaccine.getAnimal().getId(),
-                vaccine.getName(),
-                vaccine.getCode()
-        );
+        Animal animal = animalRepo.findById(vaccineRequest.getAnimal().getId())
+                .orElseThrow(() -> new RuntimeException("Belirtilen ID'ye sahip hayvan bulunamadı."));
+        vaccine.setAnimal(animal);
+
+        List<Vaccine> vaccines = vaccineRepository.findByAnimalIdAndNameAndCode(vaccineRequest.getAnimal().getId(),vaccineRequest.getName(),vaccineRequest.getCode());
 
         if (!vaccines.isEmpty()) {
             throw new RuntimeException("Aynı tarihlerde aynı hayvana aynı aşıyı tekrar ekleyemezsiniz.");
         }
 
-        // Koruma bitiş tarihinin koruma başlangıç tarihinden önce olmadığından emin olun.
         if (vaccine.getProtectionFinishDate().isBefore(vaccine.getProtectionStartDate())) {
             throw new RuntimeException("Koruma bitiş tarihi koruma başlangıç tarihinden önce olamaz.");
         }
@@ -81,10 +64,17 @@ public class VaccineService {
         vaccineResponse.setCode(vaccine.getCode());
         vaccineResponse.setProtectionStartDate(vaccine.getProtectionStartDate());
         vaccineResponse.setProtectionFinishDate(vaccine.getProtectionFinishDate());
-        vaccineResponse.setAnimalId(vaccine.getAnimal().getId());
+
+        // Animal nesnesini kontrol et ve eğer null değilse atamaları yap
+        if (vaccine.getAnimal() != null) {
+            long animalId = vaccine.getAnimal().getId();
+            Optional<Animal> animalVaccine = animalRepo.findById(animalId);
+            vaccineResponse.setAnimal(animalVaccine.orElse(null));
+        }
 
         return vaccineResponse;
     }
+
     public boolean isAnimalExist(Long animalId) {
         return animalRepo.existsById(animalId);
     }

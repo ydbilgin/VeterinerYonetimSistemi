@@ -14,11 +14,16 @@ import java.time.LocalTime;
 public interface DoctorRepo extends JpaRepository<Doctor,Long> {
 
     Doctor findByName(String name);
-    @Query("SELECT COUNT(d) = 0 FROM Doctor d " +
-            "JOIN d.appointments a " +
-            "WHERE d.id = :id " +
-            "AND a.appointmentDate = :appointmentDate")
-    boolean isDoctorAvailableOnDateAndTime(@Param("id") Long id, @Param("appointmentDate") LocalDateTime appointmentDate);
+
+
+    @Query("SELECT COUNT(a) > 0 FROM AvailableDate a " +
+            "WHERE a.doctor.id = :id " +
+            "AND a.availableDate = :availableDate")
+    boolean isDoctorAvailableOnDate(@Param("id") Long id, @Param("availableDate") LocalDate availableDate);
+
+    boolean existsByPhone(String phone);
+
+
 
 
 
