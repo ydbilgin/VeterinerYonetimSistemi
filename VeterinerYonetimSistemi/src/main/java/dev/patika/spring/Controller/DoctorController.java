@@ -31,6 +31,7 @@ public class DoctorController {
     }
 
     // id yollanırsa update ediyor, id yoksa insert ediyor
+    //DEĞERLENDİRME FORMU 12
     @PostMapping("/save")
     public ResponseEntity<?> save(@RequestBody Doctor doctor) {
         // Telefona göre doktor kontrolü

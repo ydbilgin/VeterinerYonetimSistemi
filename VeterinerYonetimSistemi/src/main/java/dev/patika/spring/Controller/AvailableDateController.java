@@ -36,7 +36,7 @@ public class AvailableDateController {
     public List<AvailableDate> findByDoctorId(@PathVariable("id") long id) {
         return availableDateService.getAvailableDates(id);
     }
-
+    //DEĞERLENDİRME FORMU 13
     @PostMapping("/save")
     public ResponseEntity<AvailableDate> save(@RequestBody AvailableDateRequest request) {
         AvailableDate availableDate = new AvailableDate();

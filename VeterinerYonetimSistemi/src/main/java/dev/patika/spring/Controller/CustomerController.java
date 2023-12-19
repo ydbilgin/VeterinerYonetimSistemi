@@ -25,6 +25,8 @@ public class CustomerController {
     }
 
     // id yollanırsa update ediyor, id yoksa insert ediyor
+
+    //DEĞERLENDİRME FORMU 10
     @PostMapping("/save")
     public ResponseEntity<?> save(@RequestBody Customer customer) {
         try {
@@ -43,12 +45,15 @@ public class CustomerController {
     public List<Customer> findAll() {
         return this.customerRepo.findAll();
     }
+
+    //DEĞERLENDİRME FORMU 18
     @GetMapping("/{customerId}/animals")
     public List<Animal> findAnimalsByCustomerId(@PathVariable("customerId") long id) {
         Customer customer = customerRepo.findById(id).orElseThrow();
 
         return customer.getAnimals();
     }
+    //DEĞERLENDİRME FORMU 17
     @GetMapping("/name/{name}")
     public List<Customer> findByName(@PathVariable("name") String name){
         return this.customerRepo.findByCustomerNameIgnoreCase(name);

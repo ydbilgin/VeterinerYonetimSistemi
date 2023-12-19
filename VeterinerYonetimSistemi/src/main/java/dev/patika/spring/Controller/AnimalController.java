@@ -28,12 +28,14 @@ public class AnimalController {
         this.animalService = animalService;
     }
     //id'ye göre hayvan bulmak için
+
     @GetMapping("/{id}")
     public Animal findbyId(@PathVariable("id") long id){
         return this.animalRepo.findById(id).orElseThrow();
     }
 
     // id yollanırsa update ediyor, id yoksa insert ediyor
+    //DEĞERLENDİRME FORMU 11
     @PostMapping("/save")
     public ResponseEntity<?> saveAnimal(@RequestBody AnimalRequest animalRequest) {
         try {
@@ -90,6 +92,7 @@ public class AnimalController {
         return this.animalRepo.findAll();
     }
     //isme göre hayvan aramak için
+    //DEĞERLENDİRME FORMU 16
     @GetMapping("/name/{name}")
     public List<Animal> findByName(@PathVariable("name") String name){
         return this.animalRepo.findByAnimalNameIgnoreCase(name);

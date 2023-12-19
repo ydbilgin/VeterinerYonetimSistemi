@@ -41,6 +41,8 @@ public class AppointmentController {
         return appointmentService.getAppointment(id);
     }
 
+    //DEĞERLENDİRME FORMU 14
+
     @PostMapping(value = "/save", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequest appointmentRequest) {
         try {
@@ -61,6 +63,8 @@ public class AppointmentController {
     //http://localhost:8080/appointment/findByDateAndAnimal?startDate=2023-12-17&endDate=2023-12-25&id=3
 
     //örnek çalışma ^
+
+    //DEĞERLENDİRME FORMU 23
     @GetMapping("/findByDateAndAnimal")
     public ResponseEntity<List<Appointment>> findAppointmentsByDateAndAnimal(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -71,6 +75,8 @@ public class AppointmentController {
     }
 
     //http://localhost:8080/appointment/findByDateAndDoctor?startDate=2023-12-17&endDate=2023-12-25&id=1
+
+    //DEĞERLENDİRME FORMU 24
     @GetMapping("/findByDateAndDoctor")
     public ResponseEntity<List<Appointment>> findAppointmentsByDateAndDoctor(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

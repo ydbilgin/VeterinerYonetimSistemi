@@ -50,11 +50,11 @@ public class AppointmentService {
 
         } else {
             if (appointmentRepository.existsByAppointmentDateAndDoctor_Id(requestedDateTime, doctorId)) {
-                throw new RuntimeException("Girilen tarihte başka bir randevu mevcuttur.");
+                throw new RuntimeException("Girilen tarihte başka bir randevu mevcuttur."); //DEĞERLENDİRME FORMU 22
             }
 
             if (!doctorRepository.isDoctorAvailableOnDate(doctorId, appointmentDate)) {
-                throw new RuntimeException("Doktor bu tarihte çalışmamaktadır!");
+                throw new RuntimeException("Doktor bu tarihte çalışmamaktadır!"); //DEĞERLENDİRME FORMU 22
             }
 
         }

@@ -27,12 +27,13 @@ public class VaccineController {
         this.vaccineRepository = vaccineRepository;
     }
 
-
+    //DEĞERLENDİRME FORMU 20
     @GetMapping("/{id}")
     public ResponseEntity<List<Vaccine>> getVaccinesByAnimalId(@PathVariable Long id) {
         List<Vaccine> vaccines = vaccineService.getVaccinesByAnimalId(id);
         return ResponseEntity.ok(vaccines);
     }
+    //DEĞERLENDİRME FORMU 15
     @PostMapping("/save")
     public ResponseEntity<?> createVaccine(@RequestBody VaccineRequest vaccineRequest) {
         try {
@@ -67,7 +68,7 @@ public class VaccineController {
 
 
 
-
+    //DEĞERLENDİRME FORMU 21
     @GetMapping("/expiring")
     public ResponseEntity<List<Animal>> getAnimalsWithExpiringVaccines(
             @RequestParam("startDate") LocalDate startDate,

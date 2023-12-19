@@ -51,7 +51,7 @@ public class VaccineService {
         if (!vaccines.isEmpty()) {
             throw new RuntimeException("Aynı tarihlerde aynı hayvana aynı aşıyı tekrar ekleyemezsiniz.");
         }
-
+        //DEĞERLENDİRME FORMU 19
         if (vaccine.getProtectionFinishDate().isBefore(vaccine.getProtectionStartDate())) {
             throw new RuntimeException("Koruma bitiş tarihi koruma başlangıç tarihinden önce olamaz.");
         }
