@@ -2,9 +2,9 @@ FROM maven:4.0.0-openjdk-21 AS build
 
 WORKDIR /app
 
-COPY ./pom.xml /app
+COPY VeterinerYonetimSistemi/pom.xml /app
 
-COPY ./src /app/src
+COPY VeterinerYonetimSistemi/src /app/src
 
 RUN mvn clean package -Dmaven.test.skip=true
 
