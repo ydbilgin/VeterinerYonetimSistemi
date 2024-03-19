@@ -1,9 +1,12 @@
 package dev.patika.spring.Controller;
 
 import dev.patika.spring.Dto.Request.AppointmentRequest;
+import dev.patika.spring.Dto.Request.DoctorRequest;
+import dev.patika.spring.Dto.Request.ReportRequest;
 import dev.patika.spring.Entity.Animal;
 import dev.patika.spring.Entity.Appointment;
 import dev.patika.spring.Entity.Doctor;
+import dev.patika.spring.Entity.Report;
 import dev.patika.spring.Repository.AnimalRepo;
 import dev.patika.spring.Repository.AppointmentRepo;
 import dev.patika.spring.Repository.DoctorRepo;
@@ -52,13 +55,48 @@ public class AppointmentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateAppointment(@PathVariable("id") long id, @RequestBody AppointmentRequest appointmentRequest) {
+        try {
+            Optional<Appointment> optionalAppointment = appointmentRepo.findById(id);
 
+            if (!optionalAppointment.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bu ID'de bir randevu bulunamadı.");
+            }
 
-    @PutMapping("/update")
-    public ResponseEntity<Appointment> updateAppointment(@RequestBody Appointment appointment) {
-        Appointment updatedAppointment = appointmentService.updateAppointment(appointment);
-        return new ResponseEntity<>(updatedAppointment, HttpStatus.OK);
+            Appointment appointment = optionalAppointment.get();
+
+            appointment.setAppointmentDate(appointmentRequest.getAppointmentDate());
+
+            if (appointmentRequest.getDoctor() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Doktor bilgisi eksik.");
+            }
+            if (appointmentRequest.getAnimal() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Hayvan bilgisi eksik.");
+            }
+
+            if (!appointmentService.isDoctorExist(appointmentRequest.getDoctor().getId())){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Belirtilen ID'de bir doktor bulunmuyor.");
+            }
+            if (!appointmentService.isAnimalExist(appointmentRequest.getAnimal().getId())){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Belirtilen ID'de bir hayvan bulunmuyor.");
+            }
+
+            appointment.setDoctor(doctorRepo.findById(appointmentRequest.getDoctor().getId()).orElseThrow(() -> new RuntimeException("Doktor bulunamadı!")));
+            appointment.setAnimal(animalRepo.findById(appointmentRequest.getAnimal().getId()).orElseThrow(() -> new RuntimeException("Hayvan bulunamadı!")));
+
+            Appointment updatedAppointment = appointmentService.updateAppointment(id, appointmentRequest);
+
+            return ResponseEntity.ok(updatedAppointment);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Randevu güncellenemedi: "  + e.getMessage());
+        }
     }
+
+
+
+
 
     //http://localhost:8080/appointment/findByDateAndAnimal?startDate=2023-12-17&endDate=2023-12-25&id=3
 

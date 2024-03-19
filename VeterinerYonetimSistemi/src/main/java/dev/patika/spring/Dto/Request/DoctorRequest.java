@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DoctorRequest {
-    private long id;
+    private Long id;
     private String name;
     private String phone;
     private String mail;

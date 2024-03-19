@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class AvailableDateRequest {
-    private long id;
+    private Long id;
     private LocalDate availableDate;
     private Doctor doctor;
 }

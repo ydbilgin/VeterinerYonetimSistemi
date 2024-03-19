@@ -31,9 +31,6 @@ public class Customer {
     @OneToMany(mappedBy = "customer",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Animal> animals;
-    //EMİN DEĞİLİM
-    //@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-    //private List<Appointment> appointments;
 
 
 }

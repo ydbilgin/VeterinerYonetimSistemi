@@ -310,7 +310,7 @@ HTTP Status: 404 Not Found (Eğer hayvan bulunamazsa)
 ```
 
 
-## İsime Göre Hayvan Filtreleme
+## İsme Göre Hayvan Filtreleme
 #### Endpoint: http://localhost:8080/animal/name/{name}
 #### Description: O isime sahip hayvanları listeler. Aynı isimden birden çok olabileceği için hepsini listelemeyi seçtim. Aynı zamanda ignorecase kullanıyor.
 #### Path Variables:
@@ -319,7 +319,7 @@ name (String) - Hayvanın adı.
 #### Request:
 #### Örnek: http://localhost:8080/animal/name/Simba
 #### Response:
-HTTP Status: 200 OK
+HTTP Status: 200 OKs
 #### Body:
 ```
 [
@@ -1032,7 +1032,7 @@ HTTP Status: 200 OK
 
 # Vaccine Entity Operasyonları
 ## Aşı Oluşturma
-#### Endpoint: POST http://localhost:8080/vaccine/create
+#### Endpoint: POST http://localhost:8080/vaccine/save
 ####  Description: Belirli bir hayvana aşı ekler.
 ####  Request:
 ####   Body:

@@ -64,6 +64,65 @@ public class AnimalController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateAnimal(@PathVariable("id") Long id, @RequestBody AnimalRequest animalRequest) {
+        try {
+
+            // Güncellenecek hayvanı id'ye göre bul
+            Optional<Animal> optionalAnimal = animalRepo.findById(id);
+            Animal checkAnimal = optionalAnimal.get();
+
+            if (!optionalAnimal.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bu ID'de bir hayvan bulunamadı.");
+            }
+
+            // Güncellenecek hayvanı al
+            Animal animalToUpdate = optionalAnimal.get();
+
+            // Hayvanın yeni bilgilerini set et
+            animalToUpdate.setName(animalRequest.getName());
+            animalToUpdate.setBreed(animalRequest.getBreed());
+            animalToUpdate.setGender(animalRequest.getGender());
+            animalToUpdate.setSpecies(animalRequest.getSpecies());
+            animalToUpdate.setDateOfBirth(animalRequest.getDateOfBirth());
+            animalToUpdate.setColour(animalRequest.getColour());
+
+            // Müşteri bilgisini kontrol et
+            if (animalRequest.getCustomer() == null || animalRequest.getCustomer().getId() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Müşteri bilgisi eksik veya geçersiz.");
+            }
+
+            if (!(animalToUpdate.getName().equals(animalRequest.getName())) || !(animalToUpdate.getCustomer().getName().equals(animalRequest.getCustomer().getName()))) {
+                if (animalRepo.existsByNameAndCustomer(animalRequest.getName(), animalRequest.getCustomer())) {
+                    throw new IllegalArgumentException("Bu müşteriye ait aynı isimde bir hayvan zaten var.");
+                }
+            }
+
+            // Belirtilen ID'ye sahip müşterinin varlığını kontrol et
+            if (!animalService.isCustomerExist(animalRequest.getCustomer().getId())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Belirtilen ID'de bir müşteri bulunmuyor.");
+            }
+
+            // Belirtilen müşteriyi al
+            Customer customer = customerRepo.findById(animalRequest.getCustomer().getId())
+                    .orElseThrow(() -> new RuntimeException("Müşteri bulunamadı!"));
+
+            // Hayvana yeni müşteriyi ata
+            animalToUpdate.setCustomer(customer);
+
+            AnimalRequest convertedAnimal = animalService.convertToAnimalRequest(animalToUpdate);
+
+            // Güncellenmiş hayvanı kaydet
+            Animal updatedAnimal = animalService.updateAnimal(id,convertedAnimal);
+
+            return ResponseEntity.ok(updatedAnimal);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+
+
 
     //id ye göre hayvan silmek için
     @DeleteMapping("/delete/{id}")

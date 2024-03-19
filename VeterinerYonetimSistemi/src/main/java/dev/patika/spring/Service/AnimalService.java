@@ -4,6 +4,7 @@ import dev.patika.spring.Dto.Request.AnimalRequest;
 import dev.patika.spring.Entity.Animal;
 import dev.patika.spring.Entity.Appointment;
 import dev.patika.spring.Entity.Customer;
+import dev.patika.spring.Entity.Vaccine;
 import dev.patika.spring.Repository.AnimalRepo;
 import dev.patika.spring.Repository.AppointmentRepo;
 import dev.patika.spring.Repository.CustomerRepo;
@@ -31,6 +32,16 @@ public class AnimalService {
     public Animal saveAnimal(AnimalRequest animalRequest) {
         // AnimalRequest'ten Animal'a dönüşüm yapılıyor
         Animal animal = convertToAnimal(animalRequest);
+        if (animalRequest.getName() == null || animalRequest.getName().isEmpty() ||
+                animalRequest.getSpecies() == null || animalRequest.getSpecies().isEmpty() ||
+                animalRequest.getBreed() == null || animalRequest.getBreed().isEmpty() ||
+                animalRequest.getGender() == null || animalRequest.getGender().isEmpty() ||
+                animalRequest.getColour() == null || animalRequest.getColour().isEmpty() ||
+                animalRequest.getDateOfBirth() == null || animalRequest.getCustomer() ==null
+                || animalRequest.getCustomer().getId() == null) {
+            throw new IllegalArgumentException("Hayvana ait alanlar boş olamaz.");
+        }
+
 
         // Eğer hayvanın adı ve müşterisi ile aynı isimde bir hayvan varsa hata döndür
         if (animalRepository.existsByNameAndCustomer(animalRequest.getName(), animalRequest.getCustomer())) {
@@ -53,6 +64,50 @@ public class AnimalService {
 
         return animalRepository.save(animal); // Hayvanı kaydet
     }
+
+    public Animal updateAnimal(long id, AnimalRequest animalRequest) {
+        // Belirtilen ID'ye sahip hayvanı al
+        Animal animal = animalRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Belirtilen ID'ye sahip hayvan bulunamadı."));
+
+        // Güncelleme isteğindeki alanları kontrol et
+        if (animalRequest.getName() == null || animalRequest.getName().isEmpty() ||
+                animalRequest.getSpecies() == null || animalRequest.getSpecies().isEmpty() ||
+                animalRequest.getBreed() == null || animalRequest.getBreed().isEmpty() ||
+                animalRequest.getGender() == null || animalRequest.getGender().isEmpty() ||
+                animalRequest.getColour() == null || animalRequest.getColour().isEmpty() ||
+                animalRequest.getDateOfBirth() == null || animalRequest.getCustomer() ==null || animalRequest.getCustomer().getId() == null) {
+            throw new IllegalArgumentException("Hayvana ait alanlar boş olamaz.");
+        }
+
+
+
+        // Güncelleme isteğinde belirtilen müşteriyi al
+        Customer customer = customerRepository.findById(animalRequest.getCustomer().getId())
+                .orElseThrow(() -> new RuntimeException("Belirtilen ID'ye sahip müşteri bulunamadı."));
+
+        // Eğer hayvanın adı ve müşterisinin adı değiştiyse ve aynı isimde hayvan varsa istisna fırlat
+        if (!(animal.getName().equals(animalRequest.getName())) || !(animal.getCustomer().getName().equals(animalRequest.getCustomer().getName()))) {
+            if (animalRepository.existsByNameAndCustomer(animalRequest.getName(), customer)) {
+                throw new IllegalArgumentException("Bu müşteriye ait aynı isimde bir hayvan zaten var.");
+            }
+        }
+
+        // Hayvanın bilgilerini güncelle
+        animal.setName(animalRequest.getName());
+        animal.setSpecies(animalRequest.getSpecies());
+        animal.setBreed(animalRequest.getBreed());
+        animal.setGender(animalRequest.getGender());
+        animal.setColour(animalRequest.getColour());
+        animal.setDateOfBirth(animalRequest.getDateOfBirth());
+        animal.setCustomer(customer);
+
+        // Güncellenmiş hayvanı kaydet ve geri döndür
+        return animalRepository.save(animal);
+    }
+
+
+
 
 
 
@@ -84,6 +139,9 @@ public class AnimalService {
     public void deleteAnimal(Long id) {
         animalRepository.deleteById(id);
     }
+    public boolean isCustomerExist(Long customerId) {
+        return customerRepository.existsById(customerId);
+    }
 
     private void validateAnimal(Animal animal) {
         if (animal == null) {
@@ -92,14 +150,14 @@ public class AnimalService {
 
         if (animal.getName() == null || animal.getSpecies() == null || animal.getBreed() == null ||
                 animal.getGender() == null || animal.getDateOfBirth() == null) {
-            throw new IllegalArgumentException("Hayvana ait alanlar boş olamaz!");
+            throw new IllegalArgumentException("Hayvana ait alanlar boş olamaz!" );
         }
 
         if (animal.getCustomer() == null || animal.getCustomer().getId() == null) {
             throw new IllegalArgumentException("Sistemde kayıtlı bir müşteri ID'si giriniz!");
         }
     }
-    private Animal convertToAnimal(AnimalRequest animalRequest) {
+    public Animal convertToAnimal(AnimalRequest animalRequest) {
         Animal animal = new Animal();
         animal.setName(animalRequest.getName());
         animal.setSpecies(animalRequest.getSpecies());
@@ -118,6 +176,20 @@ public class AnimalService {
 
         return animal;
     }
+    public AnimalRequest convertToAnimalRequest(Animal animal) {
+        AnimalRequest animalRequest = new AnimalRequest();
+        animalRequest.setName(animal.getName());
+        animalRequest.setSpecies(animal.getSpecies());
+        animalRequest.setBreed(animal.getBreed());
+        animalRequest.setGender(animal.getGender());
+        animalRequest.setColour(animal.getColour());
+        animalRequest.setDateOfBirth(animal.getDateOfBirth());
+        animalRequest.setCustomer(animal.getCustomer());
+
+
+        return animalRequest;
+    }
+
 
 }
 

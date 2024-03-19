@@ -21,6 +21,9 @@ public interface AppointmentRepo extends JpaRepository<Appointment,Long> {
             LocalDateTime startDate, LocalDateTime endDate, Long id);
     Optional<Appointment> findByAppointmentDateAndDoctor_IdAndAnimal_Id(LocalDateTime appointmentDate, Long doctorId, Long animalId);
 
+    boolean existsByAppointmentDateAndDoctor_IdAndAnimal_Id(LocalDateTime appointmentDate ,Long doctorId,Long animalId);
+
+
 
 
 

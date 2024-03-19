@@ -1,6 +1,7 @@
 package dev.patika.spring.Dto.Request;
 
 import dev.patika.spring.Entity.Animal;
+import dev.patika.spring.Entity.Report;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,10 +14,11 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class VaccineRequest {
-    private long id;
+    private Long id;
     private String name;
     private String code;
     private LocalDate protectionStartDate;
     private LocalDate protectionFinishDate;
     private Animal animal;
+    private Report report;
 }

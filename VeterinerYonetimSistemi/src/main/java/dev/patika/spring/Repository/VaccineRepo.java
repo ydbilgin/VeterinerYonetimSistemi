@@ -26,6 +26,7 @@ public interface VaccineRepo extends JpaRepository<Vaccine, Long> {
             @Param("code") String code
     );
 
+    List<Vaccine> findByAnimalIdAndNameAndCodeAndIdNot(Long animalId, String name, String code, Long id);
 
     @Query("SELECT DISTINCT v.animal FROM Vaccine v WHERE v.protectionFinishDate BETWEEN :startDate AND :endDate")
     List<Animal> findAnimalsWithExpiringVaccines(

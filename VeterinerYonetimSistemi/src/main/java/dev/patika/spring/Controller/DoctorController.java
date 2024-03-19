@@ -1,7 +1,10 @@
 package dev.patika.spring.Controller;
 
+import dev.patika.spring.Dto.Request.CustomerRequest;
+import dev.patika.spring.Dto.Request.DoctorRequest;
 import dev.patika.spring.Entity.Animal;
 import dev.patika.spring.Entity.AvailableDate;
+import dev.patika.spring.Entity.Customer;
 import dev.patika.spring.Entity.Doctor;
 import dev.patika.spring.Repository.DoctorRepo;
 import dev.patika.spring.Service.AvailableDateService;
@@ -34,6 +37,14 @@ public class DoctorController {
     //DEĞERLENDİRME FORMU 12
     @PostMapping("/save")
     public ResponseEntity<?> save(@RequestBody Doctor doctor) {
+        if (doctor.getCity() == null || doctor.getCity().isEmpty() ||
+                doctor.getPhone() == null || doctor.getPhone().isEmpty() ||
+                doctor.getMail() == null || doctor.getMail().isEmpty() ||
+                doctor.getAddress() == null || doctor.getAddress().isEmpty() ||
+                doctor.getName() == null || doctor.getName().isEmpty()) {
+            throw new RuntimeException("Tüm alanları doldurunuz!");
+        }
+
         // Telefona göre doktor kontrolü
         String phoneNumber = doctor.getPhone();
         if (doctorRepo.existsByPhone(phoneNumber)) {
@@ -41,9 +52,58 @@ public class DoctorController {
                     .body("Bu doktor zaten mevcut.");
         }
 
+
         Doctor savedDoctor = doctorRepo.save(doctor);
         return ResponseEntity.ok(savedDoctor);
     }
+
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateDoctor(@PathVariable("id") long id, @RequestBody DoctorRequest doctorRequest) {
+        try {
+            if (doctorRequest.getCity() == null || doctorRequest.getCity().isEmpty() ||
+                    doctorRequest.getPhone() == null || doctorRequest.getPhone().isEmpty() ||
+                    doctorRequest.getMail() == null || doctorRequest.getMail().isEmpty() ||
+                    doctorRequest.getAddress() == null || doctorRequest.getAddress().isEmpty() ||
+                    doctorRequest.getName() == null || doctorRequest.getName().isEmpty()) {
+                throw new RuntimeException("Tüm alanları doldurunuz!");
+            }
+
+
+            Optional<Doctor> optionalDoctor = doctorRepo.findById(id);
+
+            if (optionalDoctor.isPresent()) {
+                Doctor existingDoctor = optionalDoctor.get();
+
+                if (!existingDoctor.getPhone().equals(doctorRequest.getPhone())){
+                    if (!doctorRepo.existsByPhone(doctorRequest.getPhone())) {
+                        existingDoctor.setPhone(doctorRequest.getPhone());
+
+                    }else {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body("Bu doktor zaten mevcut.");
+                    }
+
+                }
+
+
+                existingDoctor.setName(doctorRequest.getName());
+                existingDoctor.setMail(doctorRequest.getMail());
+                existingDoctor.setAddress(doctorRequest.getAddress());
+                existingDoctor.setCity(doctorRequest.getCity());
+
+                Doctor savedDoctor = doctorRepo.save(existingDoctor);
+
+                return ResponseEntity.ok(savedDoctor);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bu ID'de bir müşteri bulunamadı.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("ID'ye sahip müşteri güncellenemedi: " + id + ": " + e.getMessage());
+        }
+    }
+
 
     @GetMapping("/find-all")
     public List<Doctor> findAll() {

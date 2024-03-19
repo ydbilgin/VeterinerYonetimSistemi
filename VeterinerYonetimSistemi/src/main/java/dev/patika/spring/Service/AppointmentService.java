@@ -10,7 +10,11 @@ import dev.patika.spring.Repository.AvailableDateRepo;
 import dev.patika.spring.Repository.DoctorRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,12 +28,14 @@ public class AppointmentService {
     private DoctorRepo doctorRepository;
     private AvailableDateRepo availableDateRepository;
     private AnimalRepo animalRepo;
+    private  AppointmentRepo appointmentRepo;
     @Autowired
-    public AppointmentService(AppointmentRepo appointmentRepository, DoctorRepo doctorRepository, AvailableDateRepo availableDateRepository,AnimalRepo animalRepo) {
+    public AppointmentService(AppointmentRepo appointmentRepository, DoctorRepo doctorRepository, AvailableDateRepo availableDateRepository, AnimalRepo animalRepo, AppointmentRepo appointmentRepo) {
         this.appointmentRepository = appointmentRepository;
         this.doctorRepository = doctorRepository;
         this.availableDateRepository = availableDateRepository;
         this.animalRepo = animalRepo;
+        this.appointmentRepo = appointmentRepo;
     }
 
     // Randevu oluşturma
@@ -37,10 +43,14 @@ public class AppointmentService {
     // Randevu oluşturma
     public Appointment createAppointment(AppointmentRequest appointmentRequest) {
         LocalDateTime requestedDateTime = appointmentRequest.getAppointmentDate();
-
-        if (requestedDateTime.getMinute() != 0 || requestedDateTime.getSecond() != 0) {
-            throw new RuntimeException("Sadece saat başı randevu alınabilir.");
+        if (appointmentRequest.getDoctor() == null ||
+                appointmentRequest.getDoctor().getId() == null ||
+                appointmentRequest.getAppointmentDate() == null ||
+                appointmentRequest.getAnimal() == null ||
+                appointmentRequest.getAnimal().getId() == null ) {
+            throw new IllegalArgumentException("Randevuya ait alanlar boş olamaz.");
         }
+
 
         Long doctorId = appointmentRequest.getDoctor().getId();
         Long animalId = appointmentRequest.getAnimal().getId();
@@ -49,15 +59,20 @@ public class AppointmentService {
             throw new RuntimeException("Böyle bir doktor bulunmamaktadır!");
 
         } else {
+            if (!doctorRepository.isDoctorAvailableOnDate(doctorId, appointmentDate)) {
+                throw new RuntimeException("Doktor bu tarihte çalışmamaktadır!"); //DEĞERLENDİRME FORMU 22
+            }
             if (appointmentRepository.existsByAppointmentDateAndDoctor_Id(requestedDateTime, doctorId)) {
                 throw new RuntimeException("Girilen tarihte başka bir randevu mevcuttur."); //DEĞERLENDİRME FORMU 22
             }
 
-            if (!doctorRepository.isDoctorAvailableOnDate(doctorId, appointmentDate)) {
-                throw new RuntimeException("Doktor bu tarihte çalışmamaktadır!"); //DEĞERLENDİRME FORMU 22
-            }
+
 
         }
+        if (requestedDateTime.getMinute() != 0 || requestedDateTime.getSecond() != 0) {
+            throw new RuntimeException("Sadece saat başı randevu alınabilir.");
+        }
+
 
 
         Appointment appointment = convertDtoToAppointment(appointmentRequest, animalId);
@@ -81,6 +96,78 @@ public class AppointmentService {
         return appointment;
     }
 
+    public Appointment updateAppointment(long id, AppointmentRequest appointmentRequest) {
+        // Veritabanından belirtilen id'ye sahip randevuyu bul
+        Optional<Appointment> optionalAppointment = appointmentRepo.findById(id);
+        if (appointmentRequest.getDoctor() == null ||
+                appointmentRequest.getDoctor().getId() == null ||
+                appointmentRequest.getAppointmentDate() == null ||
+                appointmentRequest.getAnimal() == null ||
+                appointmentRequest.getAnimal().getId() == null ) {
+            throw new IllegalArgumentException("Randevuya ait alanlar boş olamaz.");
+        }
+
+
+        // Eğer randevu bulunamazsa, hata döndür
+        if (!optionalAppointment.isPresent()) {
+            throw new RuntimeException("Bu ID'de bir randevu bulunamadı.");
+        }
+
+        Appointment appointment = optionalAppointment.get();
+
+
+        LocalDateTime requestedDateTime = appointmentRequest.getAppointmentDate();
+        Long doctorId = appointmentRequest.getDoctor().getId();
+        LocalDate appointmentDate = requestedDateTime.toLocalDate();
+        if (!(appointment.getAppointmentDate().equals(appointmentRequest.getAppointmentDate()) || !(appointment.getDoctor().getId().equals(appointmentRequest.getDoctor().getId())))){
+           if (appointmentRepo.existsByAppointmentDateAndDoctor_Id(requestedDateTime, doctorId)) {
+                throw new RuntimeException("Girilen tarihte başka bir randevu mevcuttur.");
+            }
+
+        }
+        if (!doctorRepository.existsById(doctorId)) {
+            throw new RuntimeException("Böyle bir doktor bulunmamaktadır!");
+        } else if (!doctorRepository.isDoctorAvailableOnDate(doctorId, appointmentDate)) {
+            throw new RuntimeException("Doktor bu tarihte çalışmamaktadır!");
+        }
+        // Randevu tarihini ve diğer özelliklerini güncelle
+
+        if (requestedDateTime.getMinute() != 0 || requestedDateTime.getSecond() != 0) {
+            throw new RuntimeException("Sadece saat başı randevu alınabilir.");
+        }
+
+
+
+        // Güncellenmek istenen doktor ve hayvanı randevuya ata
+        appointment.setDoctor(doctorRepository.findById(doctorId).orElseThrow(() -> new RuntimeException("Doktor bulunamadı!")));
+        appointment.setAnimal(animalRepo.findById(appointmentRequest.getAnimal().getId()).orElseThrow(() -> new RuntimeException("Hayvan bulunamadı!")));
+
+        // Randevu tarihini güncelle
+        appointment.setAppointmentDate(requestedDateTime);
+
+        // Randevuyu güncelle (save metodu kullanılarak)
+        return appointmentRepo.save(appointment);
+    }
+
+    // Appointment'ı AppointmentRequest'e dönüştürmek için metod
+    private AppointmentRequest convertAppointmentToRequest(Appointment appointment, Doctor doctor, Animal animal) {
+        AppointmentRequest appointmentRequest = new AppointmentRequest();
+        appointmentRequest.setAppointmentDate(appointment.getAppointmentDate());
+        appointmentRequest.setDoctor(doctor);
+        appointmentRequest.setAnimal(animal);
+        // Diğer özellikleri gerekiyorsa ayarla
+        return appointmentRequest;
+    }
+
+    public boolean isDoctorExist(Long doctorId) {
+        return doctorRepository.existsById(doctorId);
+    }
+
+    public boolean isAnimalExist(Long animalId) {
+        return animalRepo.existsById(animalId);
+    }
+
+
 
 
 
@@ -97,20 +184,6 @@ public class AppointmentService {
 
 
 
-
-
-
-
-    // Randevu bilgilerini güncelleme
-    public Appointment updateAppointment(Appointment appointment) {
-        try {
-            // Güncelleme işlemi
-            return appointmentRepository.save(appointment);
-        } catch (DataIntegrityViolationException e) {
-            // Veritabanı kısıtlaması hatası
-            throw new RuntimeException("Güncelleme işlemi sırasında veritabanı kısıtlaması hatası oluştu.", e);
-        }
-    }
 
     // Randevu bilgilerini görüntüleme
     public Appointment getAppointment(Long appointmentId) {

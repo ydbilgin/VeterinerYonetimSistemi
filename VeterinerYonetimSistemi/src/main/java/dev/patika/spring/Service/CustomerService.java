@@ -35,6 +35,20 @@ public class CustomerService {
         return customer.getAnimals();
     }
 
+    public Customer update(Long id, Customer updatedCustomer) {
+        Customer customerFromDB = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(id + " id'li müşteri veritabanında bulunamadı"));
+
+        customerFromDB.setName(updatedCustomer.getName());
+        customerFromDB.setPhone(updatedCustomer.getPhone());
+        customerFromDB.setMail(updatedCustomer.getMail());
+        customerFromDB.setCity(updatedCustomer.getCity());
+        customerFromDB.setAddress(updatedCustomer.getAddress());
+
+
+        return customerRepository.save(customerFromDB);
+    }
+
     public List<Customer> findByCustomerName(String name) {
         return customerRepository.findByCustomerNameIgnoreCase(name);
     }

@@ -38,6 +38,10 @@ public class Vaccine {
     @JoinColumn(name = "animal_id")
     private Animal animal;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "report_id")
+    private Report report;
+
 
 
 }
